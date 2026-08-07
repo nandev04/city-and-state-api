@@ -1,0 +1,34 @@
+import { Injectable } from '@nestjs/common';
+import { State } from '../../../generated/prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { StateRepository } from '../contracts/state-repository.abstract';
+
+@Injectable()
+export class PrismaStateRepository implements StateRepository {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async save(name: string, stateCode: string): Promise<State> {
+    return this.prisma.state.create({
+      data: { name, stateCode },
+    });
+  }
+
+  async list(): Promise<State[] | null> {
+    return this.prisma.state.findMany({
+      where: { deletedAt: null },
+    });
+  }
+
+  async listByStateCode(uf: string): Promise<State | null> {
+    return this.prisma.state.findFirst({
+      where: { stateCode: uf, deletedAt: null },
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.prisma.state.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+}
