@@ -25,6 +25,12 @@ export class PrismaStateRepository implements StateRepository {
     });
   }
 
+  async listByName(name: string): Promise<State | null> {
+    return this.prisma.state.findFirst({
+      where: { name, deletedAt: null },
+    });
+  }
+
   async delete(id: number): Promise<void> {
     await this.prisma.state.update({
       where: { id },

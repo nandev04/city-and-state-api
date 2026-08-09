@@ -14,12 +14,13 @@ import { UpdateStateDto } from './dto/update-state.dto';
 @Controller('state')
 export class StateController {
   constructor(private readonly stateService: StateService) {}
-  @Post()
+
+  @Post('')
   create(@Body() createStateDto: CreateStateDto) {
     return this.stateService.create(createStateDto);
   }
 
-  @Get()
+  @Get('')
   findAll() {
     return this.stateService.findAll();
   }
