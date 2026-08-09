@@ -15,9 +15,9 @@ import { UpdateStateDto } from './dto/update-state.dto';
 export class StateController {
   constructor(private readonly stateService: StateService) {}
 
-  @Post('')
-  create(@Body() createStateDto: CreateStateDto) {
-    return this.stateService.create(createStateDto);
+  @Get(':uf')
+  findOne(@Param('uf') uf: string) {
+    return this.stateService.findOne(uf);
   }
 
   @Get('')
@@ -25,9 +25,9 @@ export class StateController {
     return this.stateService.findAll();
   }
 
-  @Get(':uf')
-  findOne(@Param('uf') uf: string) {
-    return this.stateService.findOne(+uf);
+  @Post('')
+  create(@Body() createStateDto: CreateStateDto) {
+    return this.stateService.create(createStateDto);
   }
 
   @Patch(':id')

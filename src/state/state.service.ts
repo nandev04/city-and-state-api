@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateStateDto } from './dto/create-state.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
 import { StateRepository } from './contracts/state-repository.abstract';
@@ -30,8 +34,13 @@ export class StateService {
     return `This action returns all state`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} state`;
+  async findOne(uf: string) {
+    const state = await this.stateRepository.listByStateCode(uf);
+
+    if (!state)
+      throw new NotFoundException(`Estado com UF "${uf}" não encontrado.`);
+
+    return state;
   }
 
   update(id: number, updateStateDto: UpdateStateDto) {
