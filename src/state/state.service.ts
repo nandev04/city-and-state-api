@@ -1,11 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateStateDto } from './dto/create-state.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
+import { StateRepository } from './contracts/state-repository.abstract';
 
 @Injectable()
 export class StateService {
-  create(createStateDto: CreateStateDto) {
-    return 'This action adds a new state';
+  constructor(private readonly stateRepository: StateRepository) {}
+
+  async create(createStateDto: CreateStateDto) {
+    const { name, stateCode } = createStateDto;
+
+    const [existingByCode, existingByName] = await Promise.all([
+      this.stateRepository.listByStateCode(stateCode),
+      this.stateRepository.listByName(name),
+    ]);
+
+    if (existingByCode)
+      throw new ConflictException(
+        `Já existe um estado com a UF "${stateCode}".`,
+      );
+
+    if (existingByName)
+      throw new ConflictException(`Já existe um estado com o nome "${name}".`);
+
+    return this.stateRepository.save(name, stateCode);
   }
 
   findAll() {
