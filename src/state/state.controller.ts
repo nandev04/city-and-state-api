@@ -1,15 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
-import { StateService } from './state.service';
 import { CreateStateDto } from './dto/create-state.dto';
+import { StateIdParamDto } from './dto/state-id-param.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
+import { StateService } from './state.service';
 
 @Controller('state')
 export class StateController {
@@ -36,7 +38,8 @@ export class StateController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.stateService.remove(+id);
+  @HttpCode(204)
+  remove(@Param() params: StateIdParamDto) {
+    return this.stateService.remove(params.id);
   }
 }

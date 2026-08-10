@@ -47,7 +47,16 @@ export class StateService {
     return `This action updates a #${id} state`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} state`;
+  async remove(id: number): Promise<void> {
+    const state = await this.stateRepository.listById(id);
+
+    if (!state) return;
+
+    if (state.cities.length > 0)
+      throw new ConflictException(
+        `Não é possível excluir o estado "${state.stateCode}" pois existem cidades vinculadas.`,
+      );
+
+    await this.stateRepository.delete(id);
   }
 }
