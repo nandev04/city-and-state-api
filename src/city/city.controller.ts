@@ -1,14 +1,16 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto } from './dto/create-city.dto';
+import { FindAllCitiesQueryDto } from './dto/find-all-cities-query.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 
 @Controller('cities')
@@ -21,8 +23,8 @@ export class CityController {
   }
 
   @Get()
-  findAll() {
-    return this.cityService.findAll();
+  findAll(@Query() query: FindAllCitiesQueryDto) {
+    return this.cityService.findAll(query);
   }
 
   @Get(':id')
