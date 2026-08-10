@@ -39,4 +39,10 @@ export class PrismaCityRepository implements CityRepository {
       where: { name, stateId, deletedAt: null },
     });
   }
+
+  async findById(id: number): Promise<City | null> {
+    return this.prisma.city.findFirst({
+      where: { id, deletedAt: null },
+    });
+  }
 }

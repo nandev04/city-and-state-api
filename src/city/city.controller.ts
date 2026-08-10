@@ -9,6 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CityService } from './city.service';
+import { CityIdParamDto } from './dto/city-id-param.dto';
 import { CreateCityDto } from './dto/create-city.dto';
 import { FindAllCitiesQueryDto } from './dto/find-all-cities-query.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
@@ -28,8 +29,8 @@ export class CityController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cityService.findOne(+id);
+  findById(@Param() params: CityIdParamDto) {
+    return this.cityService.findById(params.id);
   }
 
   @Patch(':id')

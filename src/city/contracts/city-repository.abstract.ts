@@ -11,4 +11,5 @@ export abstract class CityRepository {
     name: string,
     stateId: number,
   ): Promise<City | null>;
+  abstract findById(id: number): Promise<City | null>;
 }

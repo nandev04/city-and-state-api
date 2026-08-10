@@ -65,8 +65,13 @@ export class CityService {
     return { data, nextCursor, hasNextPage };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} city`;
+  async findById(id: number) {
+    const city = await this.cityRepository.findById(id);
+
+    if (!city)
+      throw new NotFoundException(`Cidade com id "${id}" não encontrada.`);
+
+    return city;
   }
 
   update(id: number, updateCityDto: UpdateCityDto) {
