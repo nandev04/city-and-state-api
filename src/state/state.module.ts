@@ -15,5 +15,6 @@ import { PrismaModule } from '../prisma/prisma.module';
       useClass: PrismaStateRepository,
     },
   ],
+  exports: [StateRepository],
 })
 export class StateModule {}

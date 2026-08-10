@@ -41,6 +41,15 @@ export class PrismaStateRepository implements StateRepository {
     });
   }
 
+  async existsById(id: number): Promise<boolean> {
+    const state = await this.prisma.state.findFirst({
+      where: { id, deletedAt: null },
+      select: { id: true },
+    });
+
+    return state !== null;
+  }
+
   async delete(id: number): Promise<void> {
     await this.prisma.state.update({
       where: { id },

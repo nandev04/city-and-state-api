@@ -18,6 +18,7 @@ describe('StateService', () => {
       listById: jest.fn(),
       listByStateCode: jest.fn(),
       listByName: jest.fn(),
+      existsById: jest.fn(),
       delete: jest.fn(),
     };
 

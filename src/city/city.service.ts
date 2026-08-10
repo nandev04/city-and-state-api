@@ -1,11 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { StateRepository } from '../state/contracts/state-repository.abstract';
+import { CityRepository } from './contracts/city-repository.abstract';
 import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 
 @Injectable()
 export class CityService {
-  create(createCityDto: CreateCityDto) {
-    return 'This action adds a new city';
+  constructor(
+    private readonly cityRepository: CityRepository,
+    private readonly stateRepository: StateRepository,
+  ) {}
+
+  async create(createCityDto: CreateCityDto) {
+    const { name, stateId } = createCityDto;
+
+    const stateExists = await this.stateRepository.existsById(stateId);
+
+    if (!stateExists)
+      throw new NotFoundException(`Estado com id "${stateId}" não encontrado.`);
+
+    const existing = await this.cityRepository.findByNameAndStateId(
+      name,
+      stateId,
+    );
+
+    if (existing)
+      throw new ConflictException(
+        `Já existe uma cidade com o nome "${name}" no estado "${stateId}".`,
+      );
+
+    return this.cityRepository.save(name, stateId);
   }
 
   findAll() {
