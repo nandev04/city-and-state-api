@@ -46,6 +46,16 @@ export class PrismaCityRepository implements CityRepository {
     });
   }
 
+  async update(
+    id: number,
+    data: { name?: string; stateId?: number },
+  ): Promise<City> {
+    return this.prisma.city.update({
+      where: { id },
+      data,
+    });
+  }
+
   async delete(id: number): Promise<void> {
     await this.prisma.city.update({
       where: { id },

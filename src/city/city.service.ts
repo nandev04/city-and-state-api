@@ -74,8 +74,39 @@ export class CityService {
     return city;
   }
 
-  update(id: number, updateCityDto: UpdateCityDto) {
-    return `This action updates a #${id} city`;
+  async update(id: number, updateCityDto: UpdateCityDto) {
+    const city = await this.cityRepository.findById(id);
+
+    if (!city)
+      throw new NotFoundException(`Cidade com id "${id}" não encontrada.`);
+
+    const { name, stateId } = updateCityDto;
+
+    if (stateId) {
+      const stateExists = await this.stateRepository.existsById(stateId);
+
+      if (!stateExists)
+        throw new NotFoundException(
+          `Estado com id "${stateId}" não encontrado.`,
+        );
+    }
+
+    if (name || stateId) {
+      const targetName = name ?? city.name;
+      const targetStateId = stateId ?? city.stateId;
+
+      const existing = await this.cityRepository.findByNameAndStateId(
+        targetName,
+        targetStateId,
+      );
+
+      if (existing && existing.id !== id)
+        throw new ConflictException(
+          `Já existe uma cidade com o nome "${targetName}" no estado "${targetStateId}".`,
+        );
+    }
+
+    return this.cityRepository.update(id, { name, stateId });
   }
 
   async remove(id: number): Promise<void> {
