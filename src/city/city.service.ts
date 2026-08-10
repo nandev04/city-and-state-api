@@ -6,6 +6,7 @@ import {
 import { StateRepository } from '../state/contracts/state-repository.abstract';
 import { CityRepository } from './contracts/city-repository.abstract';
 import { CreateCityDto } from './dto/create-city.dto';
+import { FindAllCitiesQueryDto } from './dto/find-all-cities-query.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 
 @Injectable()
@@ -36,8 +37,32 @@ export class CityService {
     return this.cityRepository.save(name, stateId);
   }
 
-  findAll() {
-    return `This action returns all city`;
+  async findAll(query: FindAllCitiesQueryDto) {
+    const { cursor, limit, stateCode } = query;
+
+    let stateId: number | undefined;
+    if (stateCode) {
+      const state = await this.stateRepository.listByStateCode(stateCode);
+
+      if (!state)
+        throw new NotFoundException(
+          `Estado com UF "${stateCode}" não encontrado.`,
+        );
+
+      stateId = state.id;
+    }
+
+    const rows = await this.cityRepository.list({
+      cursor,
+      limit: limit + 1,
+      stateId,
+    });
+
+    const hasNextPage = rows.length > limit;
+    const data = hasNextPage ? rows.slice(0, limit) : rows;
+    const nextCursor = hasNextPage ? data[data.length - 1].id : null;
+
+    return { data, nextCursor, hasNextPage };
   }
 
   findOne(id: number) {

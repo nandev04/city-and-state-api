@@ -27,8 +27,9 @@ Formato: método, rota, entrada, sucesso, erros.
   Erros: 400 (payload inválido), 404 (stateId inexistente), 409 (name duplicado no estado).
 
 - GET /cities — lista cidades com paginação por cursor.
-  Entrada: query opcional stateId (z.coerce.number().int().positive()) pra filtrar por estado.
+  Entrada: query opcional stateCode (z.string().length(2)) pra filtrar por estado.
   Sucesso: 200 + array (exclui soft-deleted).
+  Erro: 404 (stateCode inexistente).
 
 - GET /cities/:id — busca por id.
   Entrada: param id (z.coerce.number().int().positive()).

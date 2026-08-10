@@ -13,6 +13,24 @@ export class PrismaCityRepository implements CityRepository {
     });
   }
 
+  async list(params: {
+    cursor?: number;
+    limit: number;
+    stateId?: number;
+  }): Promise<City[]> {
+    const { cursor, limit, stateId } = params;
+
+    return this.prisma.city.findMany({
+      where: {
+        deletedAt: null,
+        ...(stateId !== undefined && { stateId }),
+        ...(cursor !== undefined && { id: { gt: cursor } }),
+      },
+      orderBy: { id: 'asc' },
+      take: limit,
+    });
+  }
+
   async findByNameAndStateId(
     name: string,
     stateId: number,

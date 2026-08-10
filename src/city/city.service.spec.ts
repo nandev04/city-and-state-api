@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { City } from '../../generated/prisma/client';
+import { City, State } from '../../generated/prisma/client';
 import { StateRepository } from '../state/contracts/state-repository.abstract';
 import { CityService } from './city.service';
 import { CityRepository } from './contracts/city-repository.abstract';
@@ -13,6 +13,7 @@ describe('CityService', () => {
   beforeEach(async () => {
     const cityRepositoryMock: jest.Mocked<CityRepository> = {
       save: jest.fn(),
+      list: jest.fn(),
       findByNameAndStateId: jest.fn(),
     };
 
@@ -24,6 +25,7 @@ describe('CityService', () => {
       listByName: jest.fn(),
       existsById: jest.fn(),
       delete: jest.fn(),
+      update: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -88,6 +90,102 @@ describe('CityService', () => {
       ).rejects.toBeInstanceOf(ConflictException);
 
       expect(cityRepository.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findAll', () => {
+    const makeCities = (count: number, startId = 1): City[] =>
+      Array.from({ length: count }, (_, i) => ({
+        id: startId + i,
+        name: `Cidade ${startId + i}`,
+        stateId: 1,
+        deletedAt: null,
+      }));
+
+    it('retorna lista vazia com nextCursor null e hasNextPage false quando não há cidades', async () => {
+      cityRepository.list.mockResolvedValue([]);
+
+      await expect(
+        service.findAll({ limit: 20, cursor: undefined, stateCode: undefined }),
+      ).resolves.toEqual({ data: [], nextCursor: null, hasNextPage: false });
+      expect(cityRepository.list).toHaveBeenCalledWith({
+        cursor: undefined,
+        limit: 21,
+        stateId: undefined,
+      });
+    });
+
+    it('retorna hasNextPage false quando resultado é menor que o limit', async () => {
+      const cities = makeCities(5);
+      cityRepository.list.mockResolvedValue(cities);
+
+      await expect(
+        service.findAll({ limit: 20, cursor: undefined, stateCode: undefined }),
+      ).resolves.toEqual({
+        data: cities,
+        nextCursor: null,
+        hasNextPage: false,
+      });
+    });
+
+    it('retorna hasNextPage false quando resultado é exatamente do tamanho do limit', async () => {
+      const cities = makeCities(20);
+      cityRepository.list.mockResolvedValue(cities);
+
+      const result = await service.findAll({
+        limit: 20,
+        cursor: undefined,
+        stateCode: undefined,
+      });
+
+      expect(result.data).toHaveLength(20);
+      expect(result.nextCursor).toBeNull();
+      expect(result.hasNextPage).toBe(false);
+    });
+
+    it('retorna nextCursor com id do último item e hasNextPage true quando há próxima página', async () => {
+      const cities = makeCities(21);
+      cityRepository.list.mockResolvedValue(cities);
+
+      const result = await service.findAll({
+        limit: 20,
+        cursor: undefined,
+        stateCode: undefined,
+      });
+
+      expect(result.data).toHaveLength(20);
+      expect(result.nextCursor).toBe(20);
+      expect(result.hasNextPage).toBe(true);
+    });
+
+    it('resolve stateCode para stateId e encaminha para o repository', async () => {
+      const state: State = {
+        id: 3,
+        name: 'São Paulo',
+        stateCode: 'SP',
+        deletedAt: null,
+      };
+      stateRepository.listByStateCode.mockResolvedValue(state);
+      cityRepository.list.mockResolvedValue([]);
+
+      await service.findAll({ cursor: 10, limit: 5, stateCode: 'SP' });
+
+      expect(stateRepository.listByStateCode).toHaveBeenCalledWith('SP');
+      expect(cityRepository.list).toHaveBeenCalledWith({
+        cursor: 10,
+        limit: 6,
+        stateId: 3,
+      });
+    });
+
+    it('lança NotFoundException quando o stateCode informado não existe', async () => {
+      stateRepository.listByStateCode.mockResolvedValue(null);
+
+      await expect(
+        service.findAll({ limit: 20, cursor: undefined, stateCode: 'ZZ' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+
+      expect(cityRepository.list).not.toHaveBeenCalled();
     });
   });
 });
