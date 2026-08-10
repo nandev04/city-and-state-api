@@ -78,7 +78,11 @@ export class CityService {
     return `This action updates a #${id} city`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} city`;
+  async remove(id: number): Promise<void> {
+    const city = await this.cityRepository.findById(id);
+
+    if (!city) return;
+
+    await this.cityRepository.delete(id);
   }
 }
