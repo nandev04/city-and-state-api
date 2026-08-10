@@ -15,6 +15,7 @@ describe('CityService', () => {
       save: jest.fn(),
       list: jest.fn(),
       findByNameAndStateId: jest.fn(),
+      findById: jest.fn(),
     };
 
     const stateRepositoryMock: jest.Mocked<StateRepository> = {
@@ -186,6 +187,30 @@ describe('CityService', () => {
       ).rejects.toBeInstanceOf(NotFoundException);
 
       expect(cityRepository.list).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findById', () => {
+    const city: City = {
+      id: 10,
+      name: 'Campinas',
+      stateId: 1,
+      deletedAt: null,
+    };
+
+    it('retorna a cidade quando encontrada', async () => {
+      cityRepository.findById.mockResolvedValue(city);
+
+      await expect(service.findById(10)).resolves.toEqual(city);
+      expect(cityRepository.findById).toHaveBeenCalledWith(10);
+    });
+
+    it('lança NotFoundException quando a cidade não existe', async () => {
+      cityRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findById(999)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 });
