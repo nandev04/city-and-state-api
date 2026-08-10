@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { State } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { StateRepository } from '../contracts/state-repository.abstract';
+import {
+  StateRepository,
+  StateWithCities,
+} from '../contracts/state-repository.abstract';
 
 @Injectable()
 export class PrismaStateRepository implements StateRepository {
@@ -16,6 +19,13 @@ export class PrismaStateRepository implements StateRepository {
   async list(): Promise<State[] | null> {
     return this.prisma.state.findMany({
       where: { deletedAt: null },
+    });
+  }
+
+  async listById(id: number): Promise<StateWithCities | null> {
+    return this.prisma.state.findFirst({
+      where: { id, deletedAt: null },
+      include: { cities: { where: { deletedAt: null } } },
     });
   }
 
