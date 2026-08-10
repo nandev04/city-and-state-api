@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateStateDto } from './create-state.dto';
+import { createZodDto } from 'nestjs-zod';
+import z from 'zod';
 
-export class UpdateStateDto extends PartialType(CreateStateDto) {}
+const updateStateSchema = z
+  .object({
+    name: z.string(),
+    stateCode: z.string().regex(/^[A-Z]{2}$/),
+  })
+  .partial();
+
+export class UpdateStateDto extends createZodDto(updateStateSchema) {}

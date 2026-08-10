@@ -43,8 +43,34 @@ export class StateService {
     return state;
   }
 
-  update(id: number, updateStateDto: UpdateStateDto) {
-    return `This action updates a #${id} state`;
+  async update(id: number, updateStateDto: UpdateStateDto) {
+    const state = await this.stateRepository.listById(id);
+
+    if (!state)
+      throw new NotFoundException(`Estado com id "${id}" não encontrado.`);
+
+    const { name, stateCode } = updateStateDto;
+
+    if (stateCode && stateCode !== state.stateCode) {
+      const existingByCode =
+        await this.stateRepository.listByStateCode(stateCode);
+
+      if (existingByCode && existingByCode.id !== id)
+        throw new ConflictException(
+          `Já existe um estado com a UF "${stateCode}".`,
+        );
+    }
+
+    if (name && name !== state.name) {
+      const existingByName = await this.stateRepository.listByName(name);
+
+      if (existingByName && existingByName.id !== id)
+        throw new ConflictException(
+          `Já existe um estado com o nome "${name}".`,
+        );
+    }
+
+    return this.stateRepository.update(id, { name, stateCode });
   }
 
   async remove(id: number): Promise<void> {

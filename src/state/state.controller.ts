@@ -33,8 +33,11 @@ export class StateController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStateDto: UpdateStateDto) {
-    return this.stateService.update(+id, updateStateDto);
+  update(
+    @Param() params: StateIdParamDto,
+    @Body() updateStateDto: UpdateStateDto,
+  ) {
+    return this.stateService.update(params.id, updateStateDto);
   }
 
   @Delete(':id')
