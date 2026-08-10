@@ -16,9 +16,16 @@ export class PrismaStateRepository implements StateRepository {
     });
   }
 
-  async list(): Promise<State[] | null> {
+  async list(params: { cursor?: number; limit: number }): Promise<State[]> {
+    const { cursor, limit } = params;
+
     return this.prisma.state.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(cursor !== undefined && { id: { gt: cursor } }),
+      },
+      orderBy: { id: 'asc' },
+      take: limit,
     });
   }
 
