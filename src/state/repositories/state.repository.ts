@@ -50,6 +50,16 @@ export class PrismaStateRepository implements StateRepository {
     return state !== null;
   }
 
+  async update(
+    id: number,
+    data: { name?: string; stateCode?: string },
+  ): Promise<State> {
+    return this.prisma.state.update({
+      where: { id },
+      data,
+    });
+  }
+
   async delete(id: number): Promise<void> {
     await this.prisma.state.update({
       where: { id },

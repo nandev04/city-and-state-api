@@ -19,6 +19,7 @@ describe('StateService', () => {
       listByStateCode: jest.fn(),
       listByName: jest.fn(),
       existsById: jest.fn(),
+      update: jest.fn(),
       delete: jest.fn(),
     };
 
@@ -57,6 +58,81 @@ describe('StateService', () => {
       await expect(service.findOne('ZZ')).rejects.toBeInstanceOf(
         NotFoundException,
       );
+    });
+  });
+
+  describe('update', () => {
+    const baseState: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      deletedAt: null,
+    };
+    const stateWithoutCities: StateWithCities = { ...baseState, cities: [] };
+
+    it('atualiza name e stateCode quando o estado existe e não há conflitos', async () => {
+      repository.listById.mockResolvedValue(stateWithoutCities);
+      repository.listByStateCode.mockResolvedValue(null);
+      repository.listByName.mockResolvedValue(null);
+      const updated: State = { ...baseState, name: 'Sampa', stateCode: 'SA' };
+      repository.update.mockResolvedValue(updated);
+
+      await expect(
+        service.update(1, { name: 'Sampa', stateCode: 'SA' }),
+      ).resolves.toEqual(updated);
+      expect(repository.update).toHaveBeenCalledWith(1, {
+        name: 'Sampa',
+        stateCode: 'SA',
+      });
+    });
+
+    it('lança NotFoundException quando o estado não existe', async () => {
+      repository.listById.mockResolvedValue(null);
+
+      await expect(
+        service.update(999, { name: 'Qualquer' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('lança ConflictException quando outro estado já usa a UF', async () => {
+      repository.listById.mockResolvedValue(stateWithoutCities);
+      repository.listByStateCode.mockResolvedValue({
+        ...baseState,
+        id: 2,
+        stateCode: 'RJ',
+      });
+
+      await expect(
+        service.update(1, { stateCode: 'RJ' }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('lança ConflictException quando outro estado já usa o nome', async () => {
+      repository.listById.mockResolvedValue(stateWithoutCities);
+      repository.listByName.mockResolvedValue({
+        ...baseState,
+        id: 2,
+        name: 'Rio de Janeiro',
+      });
+
+      await expect(
+        service.update(1, { name: 'Rio de Janeiro' }),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(repository.update).not.toHaveBeenCalled();
+    });
+
+    it('não checa unicidade quando o valor recebido é igual ao atual', async () => {
+      repository.listById.mockResolvedValue(stateWithoutCities);
+      const updated: State = { ...baseState, name: 'São Paulo' };
+      repository.update.mockResolvedValue(updated);
+
+      await expect(
+        service.update(1, { name: 'São Paulo', stateCode: 'SP' }),
+      ).resolves.toEqual(updated);
+      expect(repository.listByStateCode).not.toHaveBeenCalled();
+      expect(repository.listByName).not.toHaveBeenCalled();
     });
   });
 
