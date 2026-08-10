@@ -12,4 +12,5 @@ export abstract class CityRepository {
     stateId: number,
   ): Promise<City | null>;
   abstract findById(id: number): Promise<City | null>;
+  abstract delete(id: number): Promise<void>;
 }

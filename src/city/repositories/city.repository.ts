@@ -45,4 +45,11 @@ export class PrismaCityRepository implements CityRepository {
       where: { id, deletedAt: null },
     });
   }
+
+  async delete(id: number): Promise<void> {
+    await this.prisma.city.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
 }

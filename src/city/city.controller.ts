@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -39,7 +40,8 @@ export class CityController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cityService.remove(+id);
+  @HttpCode(204)
+  remove(@Param() params: CityIdParamDto) {
+    return this.cityService.remove(params.id);
   }
 }
