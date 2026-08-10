@@ -38,7 +38,7 @@ describe('StateService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('findOne', () => {
+  describe('findByUf', () => {
     it('retorna o estado quando encontrado pela UF', async () => {
       const state: State = {
         id: 1,
@@ -48,14 +48,14 @@ describe('StateService', () => {
       };
       repository.listByStateCode.mockResolvedValue(state);
 
-      await expect(service.findOne('SP')).resolves.toEqual(state);
+      await expect(service.findByUf('SP')).resolves.toEqual(state);
       expect(repository.listByStateCode).toHaveBeenCalledWith('SP');
     });
 
     it('lança NotFoundException quando a UF não existe', async () => {
       repository.listByStateCode.mockResolvedValue(null);
 
-      await expect(service.findOne('ZZ')).rejects.toBeInstanceOf(
+      await expect(service.findByUf('ZZ')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });

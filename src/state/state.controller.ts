@@ -20,8 +20,8 @@ export class StateController {
   constructor(private readonly stateService: StateService) {}
 
   @Get(':uf')
-  findOne(@Param('uf') uf: string) {
-    return this.stateService.findOne(uf);
+  findByUf(@Param('uf') uf: string) {
+    return this.stateService.findByUf(uf);
   }
 
   @Get('')

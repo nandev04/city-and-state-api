@@ -46,7 +46,7 @@ export class StateService {
     return { data, nextCursor, hasNextPage };
   }
 
-  async findOne(uf: string) {
+  async findByUf(uf: string) {
     const state = await this.stateRepository.listByStateCode(uf);
 
     if (!state)
