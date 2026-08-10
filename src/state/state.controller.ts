@@ -7,13 +7,15 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CreateStateDto } from './dto/create-state.dto';
+import { FindAllStatesQueryDto } from './dto/find-all-states-query.dto';
 import { StateIdParamDto } from './dto/state-id-param.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
 import { StateService } from './state.service';
 
-@Controller('state')
+@Controller('states')
 export class StateController {
   constructor(private readonly stateService: StateService) {}
 
@@ -23,8 +25,8 @@ export class StateController {
   }
 
   @Get('')
-  findAll() {
-    return this.stateService.findAll();
+  findAll(@Query() query: FindAllStatesQueryDto) {
+    return this.stateService.findAll(query);
   }
 
   @Post('')

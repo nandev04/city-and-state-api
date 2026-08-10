@@ -136,6 +136,71 @@ describe('StateService', () => {
     });
   });
 
+  describe('findAll', () => {
+    const makeStates = (count: number, startId = 1): State[] =>
+      Array.from({ length: count }, (_, i) => ({
+        id: startId + i,
+        name: `Estado ${startId + i}`,
+        stateCode: 'AA',
+        deletedAt: null,
+      }));
+
+    it('retorna lista vazia com nextCursor null e hasNextPage false quando não há estados', async () => {
+      repository.list.mockResolvedValue([]);
+
+      await expect(
+        service.findAll({ limit: 20, cursor: undefined }),
+      ).resolves.toEqual({ data: [], nextCursor: null, hasNextPage: false });
+      expect(repository.list).toHaveBeenCalledWith({
+        cursor: undefined,
+        limit: 21,
+      });
+    });
+
+    it('retorna hasNextPage false quando resultado é menor que o limit', async () => {
+      const states = makeStates(5);
+      repository.list.mockResolvedValue(states);
+
+      await expect(
+        service.findAll({ limit: 20, cursor: undefined }),
+      ).resolves.toEqual({
+        data: states,
+        nextCursor: null,
+        hasNextPage: false,
+      });
+    });
+
+    it('retorna hasNextPage false quando resultado é exatamente do tamanho do limit', async () => {
+      const states = makeStates(20);
+      repository.list.mockResolvedValue(states);
+
+      const result = await service.findAll({ limit: 20, cursor: undefined });
+
+      expect(result.data).toHaveLength(20);
+      expect(result.nextCursor).toBeNull();
+      expect(result.hasNextPage).toBe(false);
+    });
+
+    it('retorna nextCursor com id do último item e hasNextPage true quando há próxima página', async () => {
+      const states = makeStates(21);
+      repository.list.mockResolvedValue(states);
+
+      const result = await service.findAll({ limit: 20, cursor: undefined });
+
+      expect(result.data).toHaveLength(20);
+      expect(result.nextCursor).toBe(20);
+      expect(result.hasNextPage).toBe(true);
+    });
+
+    it('encaminha cursor recebido e soma 1 no limit ao chamar o repository', async () => {
+      repository.list.mockResolvedValue([]);
+
+      await service.findAll({ cursor: 10, limit: 5 });
+
+      expect(repository.list).toHaveBeenCalledWith({ cursor: 10, limit: 6 });
+    });
+  });
+
   describe('remove', () => {
     const baseState: State = {
       id: 1,

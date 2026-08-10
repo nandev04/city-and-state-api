@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateStateDto } from './dto/create-state.dto';
+import { FindAllStatesQueryDto } from './dto/find-all-states-query.dto';
 import { UpdateStateDto } from './dto/update-state.dto';
 import { StateRepository } from './contracts/state-repository.abstract';
 
@@ -30,8 +31,19 @@ export class StateService {
     return this.stateRepository.save(name, stateCode);
   }
 
-  findAll() {
-    return `This action returns all state`;
+  async findAll(query: FindAllStatesQueryDto) {
+    const { cursor, limit } = query;
+
+    const rows = await this.stateRepository.list({
+      cursor,
+      limit: limit + 1,
+    });
+
+    const hasNextPage = rows.length > limit;
+    const data = hasNextPage ? rows.slice(0, limit) : rows;
+    const nextCursor = hasNextPage ? data[data.length - 1].id : null;
+
+    return { data, nextCursor, hasNextPage };
   }
 
   async findOne(uf: string) {
