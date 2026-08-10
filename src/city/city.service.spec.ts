@@ -16,6 +16,7 @@ describe('CityService', () => {
       list: jest.fn(),
       findByNameAndStateId: jest.fn(),
       findById: jest.fn(),
+      update: jest.fn(),
       delete: jest.fn(),
     };
 
@@ -212,6 +213,201 @@ describe('CityService', () => {
       await expect(service.findById(999)).rejects.toBeInstanceOf(
         NotFoundException,
       );
+    });
+  });
+
+  describe('update', () => {
+    const existingCity: City = {
+      id: 10,
+      name: 'Campinas',
+      stateId: 1,
+      deletedAt: null,
+    };
+
+    it('lança NotFoundException quando a cidade não existe', async () => {
+      cityRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update(999, { name: 'Nova' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+
+      expect(stateRepository.existsById).not.toHaveBeenCalled();
+      expect(cityRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('atualiza apenas o name quando não há colisão no mesmo estado', async () => {
+      const updated: City = { ...existingCity, name: 'Campinas Nova' };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      cityRepository.findByNameAndStateId.mockResolvedValue(null);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(
+        service.update(10, { name: 'Campinas Nova' }),
+      ).resolves.toEqual(updated);
+
+      expect(stateRepository.existsById).not.toHaveBeenCalled();
+      expect(cityRepository.findByNameAndStateId).toHaveBeenCalledWith(
+        'Campinas Nova',
+        1,
+      );
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: 'Campinas Nova',
+        stateId: undefined,
+      });
+    });
+
+    it('quando o name enviado é o mesmo da cidade, findByNameAndStateId retorna a própria cidade e não lança 409', async () => {
+      const updated: City = { ...existingCity };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(service.update(10, { name: 'Campinas' })).resolves.toEqual(
+        updated,
+      );
+
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: 'Campinas',
+        stateId: undefined,
+      });
+    });
+
+    it('lança ConflictException quando o novo name colide com outra cidade no mesmo estado', async () => {
+      cityRepository.findById.mockResolvedValue(existingCity);
+      cityRepository.findByNameAndStateId.mockResolvedValue({
+        id: 55,
+        name: 'Campinas Nova',
+        stateId: 1,
+        deletedAt: null,
+      });
+
+      await expect(
+        service.update(10, { name: 'Campinas Nova' }),
+      ).rejects.toBeInstanceOf(ConflictException);
+
+      expect(cityRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('não lança 409 quando findByNameAndStateId retorna a própria cidade', async () => {
+      const updated: City = { ...existingCity, name: 'Campinas Nova' };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(
+        service.update(10, { name: 'Campinas Nova' }),
+      ).resolves.toEqual(updated);
+    });
+
+    it('valida existência do novo stateId e lança NotFoundException quando ele não existe', async () => {
+      cityRepository.findById.mockResolvedValue(existingCity);
+      stateRepository.existsById.mockResolvedValue(false);
+
+      await expect(service.update(10, { stateId: 999 })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+
+      expect(stateRepository.existsById).toHaveBeenCalledWith(999);
+      expect(cityRepository.findByNameAndStateId).not.toHaveBeenCalled();
+      expect(cityRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('quando o stateId enviado é o mesmo do atual, ainda valida existência e não lança 409 ao encontrar a própria cidade', async () => {
+      const updated: City = { ...existingCity };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      stateRepository.existsById.mockResolvedValue(true);
+      cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(service.update(10, { stateId: 1 })).resolves.toEqual(
+        updated,
+      );
+
+      expect(stateRepository.existsById).toHaveBeenCalledWith(1);
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: undefined,
+        stateId: 1,
+      });
+    });
+
+    it('ao mover para outro estado, verifica colisão com (name atual, novo stateId)', async () => {
+      const updated: City = { ...existingCity, stateId: 2 };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      stateRepository.existsById.mockResolvedValue(true);
+      cityRepository.findByNameAndStateId.mockResolvedValue(null);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(service.update(10, { stateId: 2 })).resolves.toEqual(
+        updated,
+      );
+
+      expect(cityRepository.findByNameAndStateId).toHaveBeenCalledWith(
+        'Campinas',
+        2,
+      );
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: undefined,
+        stateId: 2,
+      });
+    });
+
+    it('lança ConflictException ao mover para estado onde já existe cidade com o mesmo name', async () => {
+      cityRepository.findById.mockResolvedValue(existingCity);
+      stateRepository.existsById.mockResolvedValue(true);
+      cityRepository.findByNameAndStateId.mockResolvedValue({
+        id: 77,
+        name: 'Campinas',
+        stateId: 2,
+        deletedAt: null,
+      });
+
+      await expect(service.update(10, { stateId: 2 })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+
+      expect(cityRepository.update).not.toHaveBeenCalled();
+    });
+
+    it('atualiza name e stateId juntos quando tudo é válido', async () => {
+      const updated: City = {
+        id: 10,
+        name: 'Nova',
+        stateId: 2,
+        deletedAt: null,
+      };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      stateRepository.existsById.mockResolvedValue(true);
+      cityRepository.findByNameAndStateId.mockResolvedValue(null);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(
+        service.update(10, { name: 'Nova', stateId: 2 }),
+      ).resolves.toEqual(updated);
+
+      expect(stateRepository.existsById).toHaveBeenCalledWith(2);
+      expect(cityRepository.findByNameAndStateId).toHaveBeenCalledWith(
+        'Nova',
+        2,
+      );
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: 'Nova',
+        stateId: 2,
+      });
+    });
+
+    it('com body vazio, não valida nada e chama update direto', async () => {
+      const updated: City = { ...existingCity };
+      cityRepository.findById.mockResolvedValue(existingCity);
+      cityRepository.update.mockResolvedValue(updated);
+
+      await expect(service.update(10, {})).resolves.toEqual(updated);
+
+      expect(stateRepository.existsById).not.toHaveBeenCalled();
+      expect(cityRepository.findByNameAndStateId).not.toHaveBeenCalled();
+      expect(cityRepository.update).toHaveBeenCalledWith(10, {
+        name: undefined,
+        stateId: undefined,
+      });
     });
   });
 

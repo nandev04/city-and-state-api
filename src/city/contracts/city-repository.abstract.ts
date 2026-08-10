@@ -12,5 +12,9 @@ export abstract class CityRepository {
     stateId: number,
   ): Promise<City | null>;
   abstract findById(id: number): Promise<City | null>;
+  abstract update(
+    id: number,
+    data: { name?: string; stateId?: number },
+  ): Promise<City>;
   abstract delete(id: number): Promise<void>;
 }

@@ -35,8 +35,11 @@ export class CityController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
-    return this.cityService.update(+id, updateCityDto);
+  update(
+    @Param() params: CityIdParamDto,
+    @Body() updateCityDto: UpdateCityDto,
+  ) {
+    return this.cityService.update(params.id, updateCityDto);
   }
 
   @Delete(':id')
