@@ -8,6 +8,7 @@ export abstract class StateRepository {
   abstract listById(id: number): Promise<StateWithCities | null>;
   abstract listByStateCode(uf: string): Promise<State | null>;
   abstract listByName(name: string): Promise<State | null>;
+  abstract existsById(id: number): Promise<boolean>;
   abstract update(
     id: number,
     data: { name?: string; stateCode?: string },
