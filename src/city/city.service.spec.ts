@@ -130,6 +130,7 @@ describe('CityService', () => {
         cursor: undefined,
         limit: 21,
         stateId: undefined,
+        name: undefined,
       });
     });
 
@@ -195,6 +196,25 @@ describe('CityService', () => {
         cursor: 10,
         limit: 6,
         stateId: 3,
+        name: undefined,
+      });
+    });
+
+    it('encaminha o filtro de nome parcial para o repository', async () => {
+      cityRepository.findAll.mockResolvedValue([]);
+
+      await service.findAll({
+        limit: 20,
+        cursor: undefined,
+        stateCode: undefined,
+        name: 'camp',
+      });
+
+      expect(cityRepository.findAll).toHaveBeenCalledWith({
+        cursor: undefined,
+        limit: 21,
+        stateId: undefined,
+        name: 'camp',
       });
     });
 

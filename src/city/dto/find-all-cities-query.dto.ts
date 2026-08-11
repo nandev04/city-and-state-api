@@ -14,6 +14,11 @@ const findAllCitiesQuerySchema = z.object({
     description: 'Filtra cidades pela UF do estado.',
     example: 'SP',
   }),
+  name: z.string().trim().min(1).optional().meta({
+    description:
+      'Filtra cidades cujo nome contém o texto informado (case-insensitive).',
+    example: 'camp',
+  }),
 });
 
 export class FindAllCitiesQueryDto extends createZodDto(
