@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+﻿import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { City, State } from '../../generated/prisma/client';
 import { StateRepository } from '../state/contracts/state-repository.abstract';
@@ -15,7 +15,7 @@ describe('CityService', () => {
   beforeEach(async () => {
     const cityRepositoryMock: jest.Mocked<CityRepository> = {
       save: jest.fn(),
-      list: jest.fn(),
+      findAll: jest.fn(),
       findByNameAndStateId: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
@@ -24,10 +24,10 @@ describe('CityService', () => {
 
     const stateRepositoryMock: jest.Mocked<StateRepository> = {
       save: jest.fn(),
-      list: jest.fn(),
-      listById: jest.fn(),
-      listByStateCode: jest.fn(),
-      listByName: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      findByStateCode: jest.fn(),
+      findByName: jest.fn(),
       existsById: jest.fn(),
       delete: jest.fn(),
       update: jest.fn(),
@@ -70,7 +70,7 @@ describe('CityService', () => {
     };
 
     it('cria a cidade quando o estado existe e não há duplicata', async () => {
-      stateRepository.listByStateCode.mockResolvedValue(stateSP);
+      stateRepository.findByStateCode.mockResolvedValue(stateSP);
       cityRepository.findByNameAndStateId.mockResolvedValue(null);
       cityRepository.save.mockResolvedValue(createdCity);
 
@@ -78,7 +78,7 @@ describe('CityService', () => {
         service.create({ name: 'Campinas', stateCode: 'SP' }),
       ).resolves.toEqual(createdCity);
 
-      expect(stateRepository.listByStateCode).toHaveBeenCalledWith('SP');
+      expect(stateRepository.findByStateCode).toHaveBeenCalledWith('SP');
       expect(cityRepository.findByNameAndStateId).toHaveBeenCalledWith(
         'Campinas',
         1,
@@ -87,7 +87,7 @@ describe('CityService', () => {
     });
 
     it('lança NotFoundException quando o stateCode informado não existe', async () => {
-      stateRepository.listByStateCode.mockResolvedValue(null);
+      stateRepository.findByStateCode.mockResolvedValue(null);
 
       await expect(
         service.create({ name: 'Campinas', stateCode: 'ZZ' }),
@@ -98,7 +98,7 @@ describe('CityService', () => {
     });
 
     it('lança ConflictException quando já existe cidade com mesmo name no estado', async () => {
-      stateRepository.listByStateCode.mockResolvedValue(stateSP);
+      stateRepository.findByStateCode.mockResolvedValue(stateSP);
       cityRepository.findByNameAndStateId.mockResolvedValue(createdCity);
 
       await expect(
@@ -121,12 +121,12 @@ describe('CityService', () => {
       }));
 
     it('retorna lista vazia com nextCursor null e hasNextPage false quando não há cidades', async () => {
-      cityRepository.list.mockResolvedValue([]);
+      cityRepository.findAll.mockResolvedValue([]);
 
       await expect(
         service.findAll({ limit: 20, cursor: undefined, stateCode: undefined }),
       ).resolves.toEqual({ data: [], nextCursor: null, hasNextPage: false });
-      expect(cityRepository.list).toHaveBeenCalledWith({
+      expect(cityRepository.findAll).toHaveBeenCalledWith({
         cursor: undefined,
         limit: 21,
         stateId: undefined,
@@ -135,7 +135,7 @@ describe('CityService', () => {
 
     it('retorna hasNextPage false quando resultado é menor que o limit', async () => {
       const cities = makeCities(5);
-      cityRepository.list.mockResolvedValue(cities);
+      cityRepository.findAll.mockResolvedValue(cities);
 
       await expect(
         service.findAll({ limit: 20, cursor: undefined, stateCode: undefined }),
@@ -148,7 +148,7 @@ describe('CityService', () => {
 
     it('retorna hasNextPage false quando resultado é exatamente do tamanho do limit', async () => {
       const cities = makeCities(20);
-      cityRepository.list.mockResolvedValue(cities);
+      cityRepository.findAll.mockResolvedValue(cities);
 
       const result = await service.findAll({
         limit: 20,
@@ -163,7 +163,7 @@ describe('CityService', () => {
 
     it('retorna nextCursor com id do último item e hasNextPage true quando há próxima página', async () => {
       const cities = makeCities(21);
-      cityRepository.list.mockResolvedValue(cities);
+      cityRepository.findAll.mockResolvedValue(cities);
 
       const result = await service.findAll({
         limit: 20,
@@ -185,13 +185,13 @@ describe('CityService', () => {
         updatedAt: now,
         deletedAt: null,
       };
-      stateRepository.listByStateCode.mockResolvedValue(state);
-      cityRepository.list.mockResolvedValue([]);
+      stateRepository.findByStateCode.mockResolvedValue(state);
+      cityRepository.findAll.mockResolvedValue([]);
 
       await service.findAll({ cursor: 10, limit: 5, stateCode: 'SP' });
 
-      expect(stateRepository.listByStateCode).toHaveBeenCalledWith('SP');
-      expect(cityRepository.list).toHaveBeenCalledWith({
+      expect(stateRepository.findByStateCode).toHaveBeenCalledWith('SP');
+      expect(cityRepository.findAll).toHaveBeenCalledWith({
         cursor: 10,
         limit: 6,
         stateId: 3,
@@ -199,13 +199,13 @@ describe('CityService', () => {
     });
 
     it('lança NotFoundException quando o stateCode informado não existe', async () => {
-      stateRepository.listByStateCode.mockResolvedValue(null);
+      stateRepository.findByStateCode.mockResolvedValue(null);
 
       await expect(
         service.findAll({ limit: 20, cursor: undefined, stateCode: 'ZZ' }),
       ).rejects.toBeInstanceOf(NotFoundException);
 
-      expect(cityRepository.list).not.toHaveBeenCalled();
+      expect(cityRepository.findAll).not.toHaveBeenCalled();
     });
   });
 

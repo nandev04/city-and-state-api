@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { State } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -16,7 +16,7 @@ export class PrismaStateRepository implements StateRepository {
     });
   }
 
-  async list(params: { cursor?: number; limit: number }): Promise<State[]> {
+  async findAll(params: { cursor?: number; limit: number }): Promise<State[]> {
     const { cursor, limit } = params;
 
     return this.prisma.state.findMany({
@@ -29,20 +29,20 @@ export class PrismaStateRepository implements StateRepository {
     });
   }
 
-  async listById(id: number): Promise<StateWithCities | null> {
+  async findById(id: number): Promise<StateWithCities | null> {
     return this.prisma.state.findFirst({
       where: { id, deletedAt: null },
       include: { cities: { where: { deletedAt: null } } },
     });
   }
 
-  async listByStateCode(uf: string): Promise<State | null> {
+  async findByStateCode(uf: string): Promise<State | null> {
     return this.prisma.state.findFirst({
       where: { stateCode: uf, deletedAt: null },
     });
   }
 
-  async listByName(name: string): Promise<State | null> {
+  async findByName(name: string): Promise<State | null> {
     return this.prisma.state.findFirst({
       where: { name, deletedAt: null },
     });

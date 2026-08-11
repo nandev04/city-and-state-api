@@ -1,4 +1,4 @@
-import {
+﻿import {
   ConflictException,
   Injectable,
   NotFoundException,
@@ -16,8 +16,8 @@ export class StateService {
     const { name, stateCode } = createStateDto;
 
     const [existingByCode, existingByName] = await Promise.all([
-      this.stateRepository.listByStateCode(stateCode),
-      this.stateRepository.listByName(name),
+      this.stateRepository.findByStateCode(stateCode),
+      this.stateRepository.findByName(name),
     ]);
 
     if (existingByCode)
@@ -34,7 +34,7 @@ export class StateService {
   async findAll(query: FindAllStatesQueryDto) {
     const { cursor, limit } = query;
 
-    const rows = await this.stateRepository.list({
+    const rows = await this.stateRepository.findAll({
       cursor,
       limit: limit + 1,
     });
@@ -47,7 +47,7 @@ export class StateService {
   }
 
   async findByUf(uf: string) {
-    const state = await this.stateRepository.listByStateCode(uf);
+    const state = await this.stateRepository.findByStateCode(uf);
 
     if (!state)
       throw new NotFoundException(`Estado com UF "${uf}" não encontrado.`);
@@ -56,7 +56,7 @@ export class StateService {
   }
 
   async update(id: number, updateStateDto: UpdateStateDto) {
-    const state = await this.stateRepository.listById(id);
+    const state = await this.stateRepository.findById(id);
 
     if (!state)
       throw new NotFoundException(`Estado com id "${id}" não encontrado.`);
@@ -65,7 +65,7 @@ export class StateService {
 
     if (stateCode && stateCode !== state.stateCode) {
       const existingByCode =
-        await this.stateRepository.listByStateCode(stateCode);
+        await this.stateRepository.findByStateCode(stateCode);
 
       if (existingByCode && existingByCode.id !== id)
         throw new ConflictException(
@@ -74,7 +74,7 @@ export class StateService {
     }
 
     if (name && name !== state.name) {
-      const existingByName = await this.stateRepository.listByName(name);
+      const existingByName = await this.stateRepository.findByName(name);
 
       if (existingByName && existingByName.id !== id)
         throw new ConflictException(
@@ -86,7 +86,7 @@ export class StateService {
   }
 
   async remove(id: number): Promise<void> {
-    const state = await this.stateRepository.listById(id);
+    const state = await this.stateRepository.findById(id);
 
     if (!state) return;
 
