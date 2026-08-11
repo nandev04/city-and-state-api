@@ -6,9 +6,9 @@ const createCitySchema = z.object({
     description: 'Nome da cidade.',
     example: 'Campinas',
   }),
-  stateId: z.number().int().positive().meta({
-    description: 'ID do estado ao qual a cidade pertence.',
-    example: 1,
+  stateCode: z.string().length(2).meta({
+    description: 'UF do estado ao qual a cidade pertence.',
+    example: 'SP',
   }),
 });
 

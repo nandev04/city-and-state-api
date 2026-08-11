@@ -7,6 +7,8 @@ import {
 } from './contracts/state-repository.abstract';
 import { StateService } from './state.service';
 
+const now = new Date();
+
 describe('StateService', () => {
   let service: StateService;
   let repository: jest.Mocked<StateRepository>;
@@ -44,6 +46,8 @@ describe('StateService', () => {
         id: 1,
         name: 'São Paulo',
         stateCode: 'SP',
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       };
       repository.listByStateCode.mockResolvedValue(state);
@@ -66,6 +70,8 @@ describe('StateService', () => {
       id: 1,
       name: 'São Paulo',
       stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
     const stateWithoutCities: StateWithCities = { ...baseState, cities: [] };
@@ -142,6 +148,8 @@ describe('StateService', () => {
         id: startId + i,
         name: `Estado ${startId + i}`,
         stateCode: 'AA',
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       }));
 
@@ -206,6 +214,8 @@ describe('StateService', () => {
       id: 1,
       name: 'São Paulo',
       stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
     const stateWithoutCities: StateWithCities = { ...baseState, cities: [] };
@@ -213,6 +223,8 @@ describe('StateService', () => {
       id: 10,
       name: 'Campinas',
       stateId: 1,
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
     const stateWithCities: StateWithCities = {
