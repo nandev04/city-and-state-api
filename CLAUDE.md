@@ -7,8 +7,7 @@ API REST com operações CRUD de estados e cidades
 - NESTJS v11 / TypeScript
 - Prisma ORM + PostgreSQL 18 (Docker)
 - Validação de dados com Zod + nestjs-zod v5
-
-<!-- - @nestjs/swagger  -->
+- @nestjs/swagger
 
 # ESTRUTURA
 

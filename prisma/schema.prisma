@@ -16,15 +16,24 @@ datasource db {
 model State {
   id        Int       @id @default(autoincrement())
   name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
   stateCode String    @db.VarChar(2)
   cities    City[]
+
+  @@index([stateCode, deletedAt])
+  @@index([name, deletedAt])
 }
 
 model City {
   id        Int       @id @default(autoincrement())
   name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime?
   stateId   Int
   state     State     @relation(fields: [stateId], references: [id])
+
+  @@index([stateId, name, deletedAt])
 }
