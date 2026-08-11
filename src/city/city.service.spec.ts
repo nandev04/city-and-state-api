@@ -5,6 +5,8 @@ import { StateRepository } from '../state/contracts/state-repository.abstract';
 import { CityService } from './city.service';
 import { CityRepository } from './contracts/city-repository.abstract';
 
+const now = new Date();
+
 describe('CityService', () => {
   let service: CityService;
   let cityRepository: jest.Mocked<CityRepository>;
@@ -53,19 +55,30 @@ describe('CityService', () => {
       id: 10,
       name: 'Campinas',
       stateId: 1,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    const stateSP: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
 
     it('cria a cidade quando o estado existe e não há duplicata', async () => {
-      stateRepository.existsById.mockResolvedValue(true);
+      stateRepository.listByStateCode.mockResolvedValue(stateSP);
       cityRepository.findByNameAndStateId.mockResolvedValue(null);
       cityRepository.save.mockResolvedValue(createdCity);
 
       await expect(
-        service.create({ name: 'Campinas', stateId: 1 }),
+        service.create({ name: 'Campinas', stateCode: 'SP' }),
       ).resolves.toEqual(createdCity);
 
-      expect(stateRepository.existsById).toHaveBeenCalledWith(1);
+      expect(stateRepository.listByStateCode).toHaveBeenCalledWith('SP');
       expect(cityRepository.findByNameAndStateId).toHaveBeenCalledWith(
         'Campinas',
         1,
@@ -73,11 +86,11 @@ describe('CityService', () => {
       expect(cityRepository.save).toHaveBeenCalledWith('Campinas', 1);
     });
 
-    it('lança NotFoundException quando o estado não existe', async () => {
-      stateRepository.existsById.mockResolvedValue(false);
+    it('lança NotFoundException quando o stateCode informado não existe', async () => {
+      stateRepository.listByStateCode.mockResolvedValue(null);
 
       await expect(
-        service.create({ name: 'Campinas', stateId: 999 }),
+        service.create({ name: 'Campinas', stateCode: 'ZZ' }),
       ).rejects.toBeInstanceOf(NotFoundException);
 
       expect(cityRepository.findByNameAndStateId).not.toHaveBeenCalled();
@@ -85,11 +98,11 @@ describe('CityService', () => {
     });
 
     it('lança ConflictException quando já existe cidade com mesmo name no estado', async () => {
-      stateRepository.existsById.mockResolvedValue(true);
+      stateRepository.listByStateCode.mockResolvedValue(stateSP);
       cityRepository.findByNameAndStateId.mockResolvedValue(createdCity);
 
       await expect(
-        service.create({ name: 'Campinas', stateId: 1 }),
+        service.create({ name: 'Campinas', stateCode: 'SP' }),
       ).rejects.toBeInstanceOf(ConflictException);
 
       expect(cityRepository.save).not.toHaveBeenCalled();
@@ -102,6 +115,8 @@ describe('CityService', () => {
         id: startId + i,
         name: `Cidade ${startId + i}`,
         stateId: 1,
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       }));
 
@@ -166,6 +181,8 @@ describe('CityService', () => {
         id: 3,
         name: 'São Paulo',
         stateCode: 'SP',
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       };
       stateRepository.listByStateCode.mockResolvedValue(state);
@@ -197,6 +214,8 @@ describe('CityService', () => {
       id: 10,
       name: 'Campinas',
       stateId: 1,
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
 
@@ -221,6 +240,8 @@ describe('CityService', () => {
       id: 10,
       name: 'Campinas',
       stateId: 1,
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
 
@@ -278,6 +299,8 @@ describe('CityService', () => {
         id: 55,
         name: 'Campinas Nova',
         stateId: 1,
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       });
 
@@ -358,6 +381,8 @@ describe('CityService', () => {
         id: 77,
         name: 'Campinas',
         stateId: 2,
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       });
 
@@ -373,6 +398,8 @@ describe('CityService', () => {
         id: 10,
         name: 'Nova',
         stateId: 2,
+        createdAt: now,
+        updatedAt: now,
         deletedAt: null,
       };
       cityRepository.findById.mockResolvedValue(existingCity);
@@ -416,6 +443,8 @@ describe('CityService', () => {
       id: 10,
       name: 'Campinas',
       stateId: 1,
+      createdAt: now,
+      updatedAt: now,
       deletedAt: null,
     };
 

@@ -17,24 +17,26 @@ export class CityService {
   ) {}
 
   async create(createCityDto: CreateCityDto) {
-    const { name, stateId } = createCityDto;
+    const { name, stateCode } = createCityDto;
 
-    const stateExists = await this.stateRepository.existsById(stateId);
+    const state = await this.stateRepository.listByStateCode(stateCode);
 
-    if (!stateExists)
-      throw new NotFoundException(`Estado com id "${stateId}" não encontrado.`);
+    if (!state)
+      throw new NotFoundException(
+        `Estado com UF "${stateCode}" não encontrado.`,
+      );
 
     const existing = await this.cityRepository.findByNameAndStateId(
       name,
-      stateId,
+      state.id,
     );
 
     if (existing)
       throw new ConflictException(
-        `Já existe uma cidade com o nome "${name}" no estado "${stateId}".`,
+        `Já existe uma cidade com o nome "${name}" no estado "${state.stateCode}".`,
       );
 
-    return this.cityRepository.save(name, stateId);
+    return this.cityRepository.save(name, state.id);
   }
 
   async findAll(query: FindAllCitiesQueryDto) {
