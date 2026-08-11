@@ -17,14 +17,18 @@ export class PrismaCityRepository implements CityRepository {
     cursor?: number;
     limit: number;
     stateId?: number;
+    name?: string;
   }): Promise<City[]> {
-    const { cursor, limit, stateId } = params;
+    const { cursor, limit, stateId, name } = params;
 
     return this.prisma.city.findMany({
       where: {
         deletedAt: null,
-        ...(stateId !== undefined && { stateId }),
-        ...(cursor !== undefined && { id: { gt: cursor } }),
+        ...(stateId && { stateId }),
+        ...(cursor && { id: { gt: cursor } }),
+        ...(name && {
+          name: { contains: name, mode: 'insensitive' },
+        }),
       },
       orderBy: { id: 'asc' },
       take: limit,

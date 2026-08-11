@@ -6,6 +6,7 @@ export abstract class CityRepository {
     cursor?: number;
     limit: number;
     stateId?: number;
+    name?: string;
   }): Promise<City[]>;
   abstract findByNameAndStateId(
     name: string,

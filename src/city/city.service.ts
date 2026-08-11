@@ -40,7 +40,7 @@ export class CityService {
   }
 
   async findAll(query: FindAllCitiesQueryDto) {
-    const { cursor, limit, stateCode } = query;
+    const { cursor, limit, stateCode, name } = query;
 
     let stateId: number | undefined;
     if (stateCode) {
@@ -58,6 +58,7 @@ export class CityService {
       cursor,
       limit: limit + 1,
       stateId,
+      name,
     });
 
     const hasNextPage = rows.length > limit;

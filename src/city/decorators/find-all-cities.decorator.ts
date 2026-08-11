@@ -11,7 +11,7 @@ export const ApiFindAllCities = () =>
   applyDecorators(
     ApiOperation({
       summary:
-        'Lista cidades paginadas por cursor. Aceita filtro opcional por UF.',
+        'Lista cidades paginadas por cursor. Aceita filtros opcionais por UF e por nome (busca parcial, case-insensitive).',
     }),
     ApiOkResponse({
       description: 'Página de cidades.',
