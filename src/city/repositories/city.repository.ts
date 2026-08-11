@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import { City } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CityRepository } from '../contracts/city-repository.abstract';
@@ -13,7 +13,7 @@ export class PrismaCityRepository implements CityRepository {
     });
   }
 
-  async list(params: {
+  async findAll(params: {
     cursor?: number;
     limit: number;
     stateId?: number;

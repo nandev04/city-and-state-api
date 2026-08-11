@@ -1,4 +1,4 @@
-import {
+﻿import {
   ConflictException,
   Injectable,
   NotFoundException,
@@ -19,7 +19,7 @@ export class CityService {
   async create(createCityDto: CreateCityDto) {
     const { name, stateCode } = createCityDto;
 
-    const state = await this.stateRepository.listByStateCode(stateCode);
+    const state = await this.stateRepository.findByStateCode(stateCode);
 
     if (!state)
       throw new NotFoundException(
@@ -44,7 +44,7 @@ export class CityService {
 
     let stateId: number | undefined;
     if (stateCode) {
-      const state = await this.stateRepository.listByStateCode(stateCode);
+      const state = await this.stateRepository.findByStateCode(stateCode);
 
       if (!state)
         throw new NotFoundException(
@@ -54,7 +54,7 @@ export class CityService {
       stateId = state.id;
     }
 
-    const rows = await this.cityRepository.list({
+    const rows = await this.cityRepository.findAll({
       cursor,
       limit: limit + 1,
       stateId,

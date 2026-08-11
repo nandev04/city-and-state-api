@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+﻿import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { City, State } from '../../generated/prisma/client';
 import {
@@ -16,10 +16,10 @@ describe('StateService', () => {
   beforeEach(async () => {
     const repositoryMock: jest.Mocked<StateRepository> = {
       save: jest.fn(),
-      list: jest.fn(),
-      listById: jest.fn(),
-      listByStateCode: jest.fn(),
-      listByName: jest.fn(),
+      findAll: jest.fn(),
+      findById: jest.fn(),
+      findByStateCode: jest.fn(),
+      findByName: jest.fn(),
       existsById: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -50,14 +50,14 @@ describe('StateService', () => {
         updatedAt: now,
         deletedAt: null,
       };
-      repository.listByStateCode.mockResolvedValue(state);
+      repository.findByStateCode.mockResolvedValue(state);
 
       await expect(service.findByUf('SP')).resolves.toEqual(state);
-      expect(repository.listByStateCode).toHaveBeenCalledWith('SP');
+      expect(repository.findByStateCode).toHaveBeenCalledWith('SP');
     });
 
     it('lança NotFoundException quando a UF não existe', async () => {
-      repository.listByStateCode.mockResolvedValue(null);
+      repository.findByStateCode.mockResolvedValue(null);
 
       await expect(service.findByUf('ZZ')).rejects.toBeInstanceOf(
         NotFoundException,
@@ -77,9 +77,9 @@ describe('StateService', () => {
     const stateWithoutCities: StateWithCities = { ...baseState, cities: [] };
 
     it('atualiza name e stateCode quando o estado existe e não há conflitos', async () => {
-      repository.listById.mockResolvedValue(stateWithoutCities);
-      repository.listByStateCode.mockResolvedValue(null);
-      repository.listByName.mockResolvedValue(null);
+      repository.findById.mockResolvedValue(stateWithoutCities);
+      repository.findByStateCode.mockResolvedValue(null);
+      repository.findByName.mockResolvedValue(null);
       const updated: State = { ...baseState, name: 'Sampa', stateCode: 'SA' };
       repository.update.mockResolvedValue(updated);
 
@@ -93,7 +93,7 @@ describe('StateService', () => {
     });
 
     it('lança NotFoundException quando o estado não existe', async () => {
-      repository.listById.mockResolvedValue(null);
+      repository.findById.mockResolvedValue(null);
 
       await expect(
         service.update(999, { name: 'Qualquer' }),
@@ -102,8 +102,8 @@ describe('StateService', () => {
     });
 
     it('lança ConflictException quando outro estado já usa a UF', async () => {
-      repository.listById.mockResolvedValue(stateWithoutCities);
-      repository.listByStateCode.mockResolvedValue({
+      repository.findById.mockResolvedValue(stateWithoutCities);
+      repository.findByStateCode.mockResolvedValue({
         ...baseState,
         id: 2,
         stateCode: 'RJ',
@@ -116,8 +116,8 @@ describe('StateService', () => {
     });
 
     it('lança ConflictException quando outro estado já usa o nome', async () => {
-      repository.listById.mockResolvedValue(stateWithoutCities);
-      repository.listByName.mockResolvedValue({
+      repository.findById.mockResolvedValue(stateWithoutCities);
+      repository.findByName.mockResolvedValue({
         ...baseState,
         id: 2,
         name: 'Rio de Janeiro',
@@ -130,15 +130,15 @@ describe('StateService', () => {
     });
 
     it('não checa unicidade quando o valor recebido é igual ao atual', async () => {
-      repository.listById.mockResolvedValue(stateWithoutCities);
+      repository.findById.mockResolvedValue(stateWithoutCities);
       const updated: State = { ...baseState, name: 'São Paulo' };
       repository.update.mockResolvedValue(updated);
 
       await expect(
         service.update(1, { name: 'São Paulo', stateCode: 'SP' }),
       ).resolves.toEqual(updated);
-      expect(repository.listByStateCode).not.toHaveBeenCalled();
-      expect(repository.listByName).not.toHaveBeenCalled();
+      expect(repository.findByStateCode).not.toHaveBeenCalled();
+      expect(repository.findByName).not.toHaveBeenCalled();
     });
   });
 
@@ -154,12 +154,12 @@ describe('StateService', () => {
       }));
 
     it('retorna lista vazia com nextCursor null e hasNextPage false quando não há estados', async () => {
-      repository.list.mockResolvedValue([]);
+      repository.findAll.mockResolvedValue([]);
 
       await expect(
         service.findAll({ limit: 20, cursor: undefined }),
       ).resolves.toEqual({ data: [], nextCursor: null, hasNextPage: false });
-      expect(repository.list).toHaveBeenCalledWith({
+      expect(repository.findAll).toHaveBeenCalledWith({
         cursor: undefined,
         limit: 21,
       });
@@ -167,7 +167,7 @@ describe('StateService', () => {
 
     it('retorna hasNextPage false quando resultado é menor que o limit', async () => {
       const states = makeStates(5);
-      repository.list.mockResolvedValue(states);
+      repository.findAll.mockResolvedValue(states);
 
       await expect(
         service.findAll({ limit: 20, cursor: undefined }),
@@ -180,7 +180,7 @@ describe('StateService', () => {
 
     it('retorna hasNextPage false quando resultado é exatamente do tamanho do limit', async () => {
       const states = makeStates(20);
-      repository.list.mockResolvedValue(states);
+      repository.findAll.mockResolvedValue(states);
 
       const result = await service.findAll({ limit: 20, cursor: undefined });
 
@@ -191,7 +191,7 @@ describe('StateService', () => {
 
     it('retorna nextCursor com id do último item e hasNextPage true quando há próxima página', async () => {
       const states = makeStates(21);
-      repository.list.mockResolvedValue(states);
+      repository.findAll.mockResolvedValue(states);
 
       const result = await service.findAll({ limit: 20, cursor: undefined });
 
@@ -201,11 +201,11 @@ describe('StateService', () => {
     });
 
     it('encaminha cursor recebido e soma 1 no limit ao chamar o repository', async () => {
-      repository.list.mockResolvedValue([]);
+      repository.findAll.mockResolvedValue([]);
 
       await service.findAll({ cursor: 10, limit: 5 });
 
-      expect(repository.list).toHaveBeenCalledWith({ cursor: 10, limit: 6 });
+      expect(repository.findAll).toHaveBeenCalledWith({ cursor: 10, limit: 6 });
     });
   });
 
@@ -233,21 +233,21 @@ describe('StateService', () => {
     };
 
     it('faz soft delete quando o estado existe e não possui cidades vinculadas', async () => {
-      repository.listById.mockResolvedValue(stateWithoutCities);
+      repository.findById.mockResolvedValue(stateWithoutCities);
 
       await expect(service.remove(baseState.id)).resolves.toBeUndefined();
       expect(repository.delete).toHaveBeenCalledWith(1);
     });
 
     it('retorna sem erro (idempotente) quando o estado não existe', async () => {
-      repository.listById.mockResolvedValue(null);
+      repository.findById.mockResolvedValue(null);
 
       await expect(service.remove(999)).resolves.toBeUndefined();
       expect(repository.delete).not.toHaveBeenCalled();
     });
 
     it('lança ConflictException quando o estado possui cidades vinculadas', async () => {
-      repository.listById.mockResolvedValue(stateWithCities);
+      repository.findById.mockResolvedValue(stateWithCities);
 
       await expect(service.remove(1)).rejects.toBeInstanceOf(ConflictException);
       expect(repository.delete).not.toHaveBeenCalled();
