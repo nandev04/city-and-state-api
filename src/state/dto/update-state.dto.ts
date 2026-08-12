@@ -9,9 +9,10 @@ const updateStateSchema = z
     }),
     stateCode: z
       .string()
-      .regex(/^[A-Z]{2}$/)
+      .length(2)
+      .transform((v) => v.toUpperCase())
       .meta({
-        description: 'UF do estado (2 letras maiúsculas).',
+        description: 'UF do estado (2 letras). Normalizado para maiúsculas.',
         example: 'SP',
       }),
   })

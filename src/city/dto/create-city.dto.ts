@@ -6,10 +6,15 @@ const createCitySchema = z.object({
     description: 'Nome da cidade.',
     example: 'Campinas',
   }),
-  stateCode: z.string().length(2).meta({
-    description: 'UF do estado ao qual a cidade pertence.',
-    example: 'SP',
-  }),
+  stateCode: z
+    .string()
+    .length(2)
+    .transform((v) => v.toUpperCase())
+    .meta({
+      description:
+        'UF do estado ao qual a cidade pertence. Normalizado para maiúsculas.',
+      example: 'SP',
+    }),
 });
 
 export class CreateCityDto extends createZodDto(createCitySchema) {}
