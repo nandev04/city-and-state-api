@@ -145,8 +145,6 @@ Optei pela **simplificação**, mantendo o histórico de auditoria e assumindo o
 
 ### 4. O que faria diferente se tivesse mais tempo?
 
-- **Normalização de UF:** Transformar automaticamente `"sp"` em `"SP"` na validação com Zod.
-- **Seed de dados:** Popular o banco consumindo a API pública do IBGE.
 - **Rate limit:** Implementar rate limit simples com algoritmo de janela deslizante usando Redis.
 - **Autenticação e Autorização:** Manter leitura pública e restringir operações de escrita a usuários autenticados, melhorando também a rastreabilidade.
 - **Cache:** Armazenar cidades e estados frequentemente consultados, aliviando a carga no banco.
