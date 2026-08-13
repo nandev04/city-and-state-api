@@ -1,15 +1,21 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { City } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CityRepository } from '../contracts/city-repository.abstract';
+import {
+  CityRepository,
+  CityWithState,
+} from '../contracts/city-repository.abstract';
+
+const includeState = { state: true } as const;
 
 @Injectable()
 export class PrismaCityRepository implements CityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(name: string, stateId: number): Promise<City> {
+  async save(name: string, stateId: number): Promise<CityWithState> {
     return this.prisma.city.create({
       data: { name, stateId },
+      include: includeState,
     });
   }
 
@@ -18,7 +24,7 @@ export class PrismaCityRepository implements CityRepository {
     limit: number;
     stateId?: number;
     name?: string;
-  }): Promise<City[]> {
+  }): Promise<CityWithState[]> {
     const { cursor, limit, stateId, name } = params;
 
     return this.prisma.city.findMany({
@@ -32,6 +38,7 @@ export class PrismaCityRepository implements CityRepository {
       },
       orderBy: { id: 'asc' },
       take: limit,
+      include: includeState,
     });
   }
 
@@ -44,19 +51,21 @@ export class PrismaCityRepository implements CityRepository {
     });
   }
 
-  async findById(id: number): Promise<City | null> {
+  async findById(id: number): Promise<CityWithState | null> {
     return this.prisma.city.findFirst({
       where: { id, deletedAt: null },
+      include: includeState,
     });
   }
 
   async update(
     id: number,
     data: { name?: string; stateId?: number },
-  ): Promise<City> {
+  ): Promise<CityWithState> {
     return this.prisma.city.update({
       where: { id },
       data,
+      include: includeState,
     });
   }
 

@@ -42,13 +42,14 @@ describe('StateService', () => {
 
   describe('findByUf', () => {
     it('retorna o estado quando encontrado pela UF', async () => {
-      const state: State = {
+      const state: StateWithCities = {
         id: 1,
         name: 'São Paulo',
         stateCode: 'SP',
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        cities: [],
       };
       repository.findByStateCode.mockResolvedValue(state);
 
@@ -80,7 +81,12 @@ describe('StateService', () => {
       repository.findById.mockResolvedValue(stateWithoutCities);
       repository.findByStateCode.mockResolvedValue(null);
       repository.findByName.mockResolvedValue(null);
-      const updated: State = { ...baseState, name: 'Sampa', stateCode: 'SA' };
+      const updated: StateWithCities = {
+        ...baseState,
+        name: 'Sampa',
+        stateCode: 'SA',
+        cities: [],
+      };
       repository.update.mockResolvedValue(updated);
 
       await expect(
@@ -107,6 +113,7 @@ describe('StateService', () => {
         ...baseState,
         id: 2,
         stateCode: 'RJ',
+        cities: [],
       });
 
       await expect(
@@ -131,7 +138,11 @@ describe('StateService', () => {
 
     it('não checa unicidade quando o valor recebido é igual ao atual', async () => {
       repository.findById.mockResolvedValue(stateWithoutCities);
-      const updated: State = { ...baseState, name: 'São Paulo' };
+      const updated: StateWithCities = {
+        ...baseState,
+        name: 'São Paulo',
+        cities: [],
+      };
       repository.update.mockResolvedValue(updated);
 
       await expect(
@@ -143,7 +154,7 @@ describe('StateService', () => {
   });
 
   describe('findAll', () => {
-    const makeStates = (count: number, startId = 1): State[] =>
+    const makeStates = (count: number, startId = 1): StateWithCities[] =>
       Array.from({ length: count }, (_, i) => ({
         id: startId + i,
         name: `Estado ${startId + i}`,
@@ -151,6 +162,7 @@ describe('StateService', () => {
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        cities: [],
       }));
 
     it('retorna lista vazia com nextCursor null e hasNextPage false quando não há estados', async () => {

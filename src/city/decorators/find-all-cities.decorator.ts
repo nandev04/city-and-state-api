@@ -15,7 +15,7 @@ export const ApiFindAllCities = () =>
     }),
     ApiOkResponse({
       description: 'Página de cidades.',
-      type: FindAllCitiesResponseDto,
+      type: FindAllCitiesResponseDto.Output,
     }),
     ApiBadRequestResponse({ description: 'Parâmetros de query inválidos.' }),
     ApiNotFoundResponse({

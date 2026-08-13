@@ -13,7 +13,7 @@ export const ApiUpdateCity = () =>
     ApiOperation({ summary: 'Atualiza uma cidade existente.' }),
     ApiOkResponse({
       description: 'Cidade atualizada.',
-      type: CityResponseDto,
+      type: CityResponseDto.Output,
     }),
     ApiBadRequestResponse({ description: 'Payload ou id inválidos.' }),
     ApiNotFoundResponse({
