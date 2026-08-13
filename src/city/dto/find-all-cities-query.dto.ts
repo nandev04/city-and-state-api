@@ -10,10 +10,16 @@ const findAllCitiesQuerySchema = z.object({
     description: 'Quantidade máxima de itens por página (máx. 100).',
     example: 20,
   }),
-  stateCode: z.string().length(2).optional().meta({
-    description: 'Filtra cidades pela UF do estado.',
-    example: 'SP',
-  }),
+  stateCode: z
+    .string()
+    .length(2)
+    .transform((v) => v.toUpperCase())
+    .optional()
+    .meta({
+      description:
+        'Filtra cidades pela UF do estado. Normalizado para maiúsculas.',
+      example: 'SP',
+    }),
   name: z.string().trim().min(1).optional().meta({
     description:
       'Filtra cidades cujo nome contém o texto informado (case-insensitive).',
