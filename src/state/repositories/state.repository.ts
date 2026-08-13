@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { State } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -6,17 +6,25 @@ import {
   StateWithCities,
 } from '../contracts/state-repository.abstract';
 
+const includeCities = {
+  cities: { where: { deletedAt: null } },
+} as const;
+
 @Injectable()
 export class PrismaStateRepository implements StateRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async save(name: string, stateCode: string): Promise<State> {
+  async save(name: string, stateCode: string): Promise<StateWithCities> {
     return this.prisma.state.create({
       data: { name, stateCode },
+      include: includeCities,
     });
   }
 
-  async findAll(params: { cursor?: number; limit: number }): Promise<State[]> {
+  async findAll(params: {
+    cursor?: number;
+    limit: number;
+  }): Promise<StateWithCities[]> {
     const { cursor, limit } = params;
 
     return this.prisma.state.findMany({
@@ -26,19 +34,21 @@ export class PrismaStateRepository implements StateRepository {
       },
       orderBy: { id: 'asc' },
       take: limit,
+      include: includeCities,
     });
   }
 
   async findById(id: number): Promise<StateWithCities | null> {
     return this.prisma.state.findFirst({
       where: { id, deletedAt: null },
-      include: { cities: { where: { deletedAt: null } } },
+      include: includeCities,
     });
   }
 
-  async findByStateCode(uf: string): Promise<State | null> {
+  async findByStateCode(uf: string): Promise<StateWithCities | null> {
     return this.prisma.state.findFirst({
       where: { stateCode: uf, deletedAt: null },
+      include: includeCities,
     });
   }
 
@@ -60,10 +70,11 @@ export class PrismaStateRepository implements StateRepository {
   async update(
     id: number,
     data: { name?: string; stateCode?: string },
-  ): Promise<State> {
+  ): Promise<StateWithCities> {
     return this.prisma.state.update({
       where: { id },
       data,
+      include: includeCities,
     });
   }
 

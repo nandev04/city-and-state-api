@@ -12,7 +12,7 @@ export const ApiFindCityById = () =>
     ApiOperation({ summary: 'Busca uma cidade pelo id.' }),
     ApiOkResponse({
       description: 'Cidade encontrada.',
-      type: CityResponseDto,
+      type: CityResponseDto.Output,
     }),
     ApiBadRequestResponse({ description: 'Id inválido.' }),
     ApiNotFoundResponse({ description: 'Cidade não encontrada.' }),

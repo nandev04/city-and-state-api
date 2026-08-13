@@ -13,7 +13,7 @@ export const ApiCreateCity = () =>
     ApiOperation({ summary: 'Cria uma nova cidade.' }),
     ApiCreatedResponse({
       description: 'Cidade criada.',
-      type: CityResponseDto,
+      type: CityResponseDto.Output,
     }),
     ApiBadRequestResponse({ description: 'Payload inválido.' }),
     ApiNotFoundResponse({ description: 'Estado informado não encontrado.' }),

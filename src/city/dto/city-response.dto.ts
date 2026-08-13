@@ -1,17 +1,29 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-const cityResponseSchema = z.object({
-  id: z.number().int().positive().meta({ example: 1 }),
-  name: z.string().meta({ example: 'Campinas' }),
-  stateId: z.number().int().positive().meta({ example: 1 }),
-  createdAt: z.iso.datetime().meta({ example: '2026-01-15T12:00:00.000Z' }),
-  updatedAt: z.iso.datetime().meta({ example: '2026-01-15T12:00:00.000Z' }),
-  deletedAt: z.iso
-    .datetime()
-    .nullable()
-    .meta({ example: null, description: 'Data de exclusão lógica.' }),
-});
+const cityResponseSchema = z
+  .object({
+    id: z.number().int().positive().meta({ example: 1 }),
+    name: z.string().meta({ example: 'Campinas' }),
+    state: z.object({
+      name: z.string(),
+      stateCode: z.string().length(2),
+    }),
+  })
+  .transform((v) => ({
+    id: v.id,
+    name: v.name,
+    state: v.state.name,
+    stateCode: v.state.stateCode,
+  }))
+  .pipe(
+    z.object({
+      id: z.number().int().positive().meta({ example: 1 }),
+      name: z.string().meta({ example: 'Campinas' }),
+      state: z.string().meta({ example: 'São Paulo' }),
+      stateCode: z.string().length(2).meta({ example: 'SP' }),
+    }),
+  );
 
 export class CityResponseDto extends createZodDto(cityResponseSchema) {}
 

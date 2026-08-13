@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_PIPE } from '@nestjs/core';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { CityModule } from './city/city.module';
 import { StateModule } from './state/state.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -12,6 +12,10 @@ import { PrismaModule } from './prisma/prisma.module';
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ZodSerializerInterceptor,
     },
   ],
 })

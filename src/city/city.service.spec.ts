@@ -1,9 +1,15 @@
 ﻿import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { City, State } from '../../generated/prisma/client';
-import { StateRepository } from '../state/contracts/state-repository.abstract';
+import { State } from '../../generated/prisma/client';
+import {
+  StateRepository,
+  StateWithCities,
+} from '../state/contracts/state-repository.abstract';
 import { CityService } from './city.service';
-import { CityRepository } from './contracts/city-repository.abstract';
+import {
+  CityRepository,
+  CityWithState,
+} from './contracts/city-repository.abstract';
 
 const now = new Date();
 
@@ -51,22 +57,24 @@ describe('CityService', () => {
   });
 
   describe('create', () => {
-    const createdCity: City = {
-      id: 10,
-      name: 'Campinas',
-      stateId: 1,
-      createdAt: now,
-      updatedAt: now,
-      deletedAt: null,
-    };
-
-    const stateSP: State = {
+    const stateSP: StateWithCities = {
       id: 1,
       name: 'São Paulo',
       stateCode: 'SP',
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
+      cities: [],
+    };
+
+    const createdCity: CityWithState = {
+      id: 10,
+      name: 'Campinas',
+      stateId: 1,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+      state: stateSP,
     };
 
     it('cria a cidade quando o estado existe e não há duplicata', async () => {
@@ -110,7 +118,16 @@ describe('CityService', () => {
   });
 
   describe('findAll', () => {
-    const makeCities = (count: number, startId = 1): City[] =>
+    const stateSP: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    const makeCities = (count: number, startId = 1): CityWithState[] =>
       Array.from({ length: count }, (_, i) => ({
         id: startId + i,
         name: `Cidade ${startId + i}`,
@@ -118,6 +135,7 @@ describe('CityService', () => {
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        state: stateSP,
       }));
 
     it('retorna lista vazia com nextCursor null e hasNextPage false quando não há cidades', async () => {
@@ -178,13 +196,14 @@ describe('CityService', () => {
     });
 
     it('resolve stateCode para stateId e encaminha para o repository', async () => {
-      const state: State = {
+      const state: StateWithCities = {
         id: 3,
         name: 'São Paulo',
         stateCode: 'SP',
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        cities: [],
       };
       stateRepository.findByStateCode.mockResolvedValue(state);
       cityRepository.findAll.mockResolvedValue([]);
@@ -230,13 +249,23 @@ describe('CityService', () => {
   });
 
   describe('findById', () => {
-    const city: City = {
+    const stateSP: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    const city: CityWithState = {
       id: 10,
       name: 'Campinas',
       stateId: 1,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
+      state: stateSP,
     };
 
     it('retorna a cidade quando encontrada', async () => {
@@ -256,13 +285,23 @@ describe('CityService', () => {
   });
 
   describe('update', () => {
-    const existingCity: City = {
+    const stateSP: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    const existingCity: CityWithState = {
       id: 10,
       name: 'Campinas',
       stateId: 1,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
+      state: stateSP,
     };
 
     it('lança NotFoundException quando a cidade não existe', async () => {
@@ -277,7 +316,7 @@ describe('CityService', () => {
     });
 
     it('atualiza apenas o name quando não há colisão no mesmo estado', async () => {
-      const updated: City = { ...existingCity, name: 'Campinas Nova' };
+      const updated: CityWithState = { ...existingCity, name: 'Campinas Nova' };
       cityRepository.findById.mockResolvedValue(existingCity);
       cityRepository.findByNameAndStateId.mockResolvedValue(null);
       cityRepository.update.mockResolvedValue(updated);
@@ -298,7 +337,7 @@ describe('CityService', () => {
     });
 
     it('quando o name enviado é o mesmo da cidade, findByNameAndStateId retorna a própria cidade e não lança 409', async () => {
-      const updated: City = { ...existingCity };
+      const updated: CityWithState = { ...existingCity };
       cityRepository.findById.mockResolvedValue(existingCity);
       cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
       cityRepository.update.mockResolvedValue(updated);
@@ -332,7 +371,7 @@ describe('CityService', () => {
     });
 
     it('não lança 409 quando findByNameAndStateId retorna a própria cidade', async () => {
-      const updated: City = { ...existingCity, name: 'Campinas Nova' };
+      const updated: CityWithState = { ...existingCity, name: 'Campinas Nova' };
       cityRepository.findById.mockResolvedValue(existingCity);
       cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
       cityRepository.update.mockResolvedValue(updated);
@@ -356,7 +395,7 @@ describe('CityService', () => {
     });
 
     it('quando o stateId enviado é o mesmo do atual, ainda valida existência e não lança 409 ao encontrar a própria cidade', async () => {
-      const updated: City = { ...existingCity };
+      const updated: CityWithState = { ...existingCity };
       cityRepository.findById.mockResolvedValue(existingCity);
       stateRepository.existsById.mockResolvedValue(true);
       cityRepository.findByNameAndStateId.mockResolvedValue(existingCity);
@@ -374,7 +413,7 @@ describe('CityService', () => {
     });
 
     it('ao mover para outro estado, verifica colisão com (name atual, novo stateId)', async () => {
-      const updated: City = { ...existingCity, stateId: 2 };
+      const updated: CityWithState = { ...existingCity, stateId: 2 };
       cityRepository.findById.mockResolvedValue(existingCity);
       stateRepository.existsById.mockResolvedValue(true);
       cityRepository.findByNameAndStateId.mockResolvedValue(null);
@@ -414,13 +453,14 @@ describe('CityService', () => {
     });
 
     it('atualiza name e stateId juntos quando tudo é válido', async () => {
-      const updated: City = {
+      const updated: CityWithState = {
         id: 10,
         name: 'Nova',
         stateId: 2,
         createdAt: now,
         updatedAt: now,
         deletedAt: null,
+        state: stateSP,
       };
       cityRepository.findById.mockResolvedValue(existingCity);
       stateRepository.existsById.mockResolvedValue(true);
@@ -443,7 +483,7 @@ describe('CityService', () => {
     });
 
     it('com body vazio, não valida nada e chama update direto', async () => {
-      const updated: City = { ...existingCity };
+      const updated: CityWithState = { ...existingCity };
       cityRepository.findById.mockResolvedValue(existingCity);
       cityRepository.update.mockResolvedValue(updated);
 
@@ -459,13 +499,23 @@ describe('CityService', () => {
   });
 
   describe('remove', () => {
-    const city: City = {
+    const stateSP: State = {
+      id: 1,
+      name: 'São Paulo',
+      stateCode: 'SP',
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+
+    const city: CityWithState = {
       id: 10,
       name: 'Campinas',
       stateId: 1,
       createdAt: now,
       updatedAt: now,
       deletedAt: null,
+      state: stateSP,
     };
 
     it('faz soft delete quando a cidade existe', async () => {
